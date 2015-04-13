@@ -109,7 +109,7 @@ PASSWORD_COMPLEXITY = {}
 
 
 ########################### Milestones #################################
-FEATURES['MILESTONES_APP'] = True
+FEATURES['MILESTONES_APP'] = False
 
 
 ########################### Entrance Exams #################################

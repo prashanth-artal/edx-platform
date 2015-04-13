@@ -13,17 +13,21 @@ Test utilities for mobile API tests:
 # pylint: disable=no-member
 import ddt
 from mock import patch
-from rest_framework.test import APITestCase
+
 from django.core.urlresolvers import reverse
 
-from opaque_keys.edx.keys import CourseKey
+from rest_framework.test import APITestCase
+
 from courseware.tests.factories import UserFactory
 
+from opaque_keys.edx.keys import CourseKey
 from student import auth
 from student.models import CourseEnrollment
-
+from util.milestones_helpers import seed_milestone_relationship_types
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
+
+from test_milestones import MobileAPIMilestonesMixin
 
 
 class MobileAPITestCase(ModuleStoreTestCase, APITestCase):
@@ -39,6 +43,9 @@ class MobileAPITestCase(ModuleStoreTestCase, APITestCase):
         self.user = UserFactory.create()
         self.password = 'test'
         self.username = self.user.username
+
+        # Sets up database for testing milestones
+        seed_milestone_relationship_types()
 
     def tearDown(self):
         super(MobileAPITestCase, self).tearDown()
@@ -124,7 +131,7 @@ class MobileAuthUserTestMixin(MobileAuthTestMixin):
 
 
 @ddt.ddt
-class MobileCourseAccessTestMixin(object):
+class MobileCourseAccessTestMixin(MobileAPIMilestonesMixin):
     """
     Test Mixin for testing APIs marked with mobile_course_access.
     (Use MobileEnrolledCourseAccessTestMixin when verify_enrolled is set to True.)
