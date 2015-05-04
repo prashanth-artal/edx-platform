@@ -52,6 +52,7 @@
 @import 'views/homepage';
 @import 'views/verification';
 @import 'views/decoupled-verification';
+@import 'views/bookmarks';
 
 // applications
 @import "discussion/utilities/variables";
