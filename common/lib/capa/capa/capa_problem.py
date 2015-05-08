@@ -766,10 +766,11 @@ class LoncapaProblem(object):
         for item in problemtree:
             item_xhtml = self._extract_html(item)
             item_sibling = self.get_sibling(problemtree, item)
-            if item_xhtml.tag == "legend" and item_sibling is not None and item_sibling in self.responders:
-                self.question_label = item_xhtml.text
-            elif item_xhtml is not None:
-                tree.append(item_xhtml)
+            if item_xhtml is not None:
+                if item_xhtml.tag == "legend" and item_sibling is not None and item_sibling in self.responders:
+                    self.question_label = item_xhtml.text
+                else:
+                    tree.append(item_xhtml)
 
         if tree.tag in html_transforms:
             tree.tag = html_transforms[problemtree.tag]['tag']
