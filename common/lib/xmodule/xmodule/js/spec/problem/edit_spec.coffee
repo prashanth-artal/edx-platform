@@ -563,7 +563,7 @@ describe 'MarkdownEditingDescriptor', ->
     it 'tests multiple questions with only one label', ->
       data = MarkdownEditingDescriptor.markdownToXml("""
         France is a country in Europe.
-        {{
+
         >>What is the capital of France?<<
         = Paris
 
@@ -574,11 +574,11 @@ describe 'MarkdownEditingDescriptor', ->
         ( ) Hamburg
         (x) Berlin
         ( ) Donut
-        }}
+
         """)
       expect(data).toEqual("""<problem>
     <p>France is a country in Europe.</p>
-    <fieldset>
+
     <legend>What is the capital of France?</legend>
     <stringresponse answer="Paris" type="ci" >
       <textline label="What is the capital of France?" size="20"/>
@@ -596,7 +596,7 @@ describe 'MarkdownEditingDescriptor', ->
       </choicegroup>
     </multiplechoiceresponse>
 
-    </fieldset>
+
     </problem>""")
     it 'tests malformed labels', ->
       data = MarkdownEditingDescriptor.markdownToXml("""
