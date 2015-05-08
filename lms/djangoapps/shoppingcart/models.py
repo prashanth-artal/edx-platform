@@ -1165,6 +1165,14 @@ class RegistrationCodeRedemption(models.Model):
     course_enrollment = models.ForeignKey(CourseEnrollment, null=True)
 
     @classmethod
+    def is_registration_code_user_for_enrollment(cls, course_enrollment):
+        """
+        Returns True if registration code has been used during the
+        course enrollment else Returns False.
+        """
+        return cls.objects.filter(course_enrollment=course_enrollment).exists()
+
+    @classmethod
     def is_registration_code_redeemed(cls, course_reg_code):
         """
         Checks the existence of the registration code
@@ -1295,6 +1303,18 @@ class PaidCourseRegistration(OrderItem):
     course_id = CourseKeyField(max_length=128, db_index=True)
     mode = models.SlugField(default=CourseMode.DEFAULT_MODE_SLUG)
     course_enrollment = models.ForeignKey(CourseEnrollment, null=True)
+
+    @classmethod
+    def get_course_item_for_user_enrollment(cls, user, course_id, course_enrollment):
+        """
+        Returns True if user has payed for the course enrollment else
+        Returns False
+        """
+        try:
+            return cls.objects.get(course_id=course_id, user=user, course_enrollment=course_enrollment,
+                                                   status='purchased')
+        except PaidCourseRegistration.DoesNotExist:
+            return None
 
     @classmethod
     def contained_in_order(cls, order, course_id):

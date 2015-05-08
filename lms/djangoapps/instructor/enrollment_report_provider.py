@@ -11,14 +11,14 @@ class EnrollmentReportProvider(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def get_enrollment_info(self, user_id, course_id):
+    def get_enrollment_info(self, user, course_id, course_enrollment_attributes):
         """
         Returns the User Enrollment information.
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_user_profile(self, user_id):
+    def get_user_profile(self, user_id, user_info_attributes, user_profile_attributes):
         """
         Returns the UserProfile information.
         """

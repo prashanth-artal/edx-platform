@@ -12,13 +12,16 @@ class BaseEnrollmentReportProvider(EnrollmentReportProvider):
 
     # don't allow instantiation of this class, it must be subclassed
     """
-    def get_user_profile(self, user_id):
+    def get_user_profile(self, user_id, user_info_attributes, user_profile_attributes):
         """
         Returns the UserProfile information.
         """
-        return User.objects.select_related('profile').get(id=user_id)
+        user_info = User.objects.select_related('profile').get(id=user_id)
+        user_info_data = [getattr(user_info, x[0]) for x in user_info_attributes]
+        user_profile_data = [getattr(user_info.profile, x[0]) for x in user_profile_attributes]
+        return user_info_data + user_profile_data
 
-    def get_enrollment_info(self, user_id, course_id):
+    def get_enrollment_info(self, user, course_id, course_enrollment_attributes):
         """
         Returns the User Enrollment information.
         """

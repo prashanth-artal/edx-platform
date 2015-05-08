@@ -72,6 +72,11 @@ USER_PROFILE_ATTRIBUTES = [
     ('country', 'Country'),
 ]
 
+COURSE_ENROLLMENT_ATTRIBUTES = [
+    ('created', 'Date Enrolled'),
+    ('is_active', 'Currently Enrolled')
+]
+
 
 class BaseInstructorTask(Task):
     """
@@ -787,7 +792,7 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
     rows = []
     err_rows = [["id", "username", "error_msg"]]
     current_step = {'step': 'Gathering Profile Information'}
-    enrollment_provider = CyberSourceEnrollmentReportProvider()
+    enrollment_report_provider = CyberSourceEnrollmentReportProvider()
     total_enrolled_students = enrolled_students.count()
     student_counter = 0
     TASK_LOG.info(
@@ -797,6 +802,15 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
         current_step,
         total_enrolled_students
     )
+    user_info_header = [x[1] for x in USER_INFO_ATTRIBUTES]
+    user_profile_header = [x[1] for x in USER_PROFILE_ATTRIBUTES]
+    course_enrollment_header = [x[1] for x in COURSE_ENROLLMENT_ATTRIBUTES]
+    payment_info_header = ['List Price', 'Payment Amount', 'Coupon Code Used', 'Payment Status', 'Transaction Reference Number']
+    enrollment_extra_headers = ['Enrollment Source', 'Enrollment Role']
+
+    header = user_info_header + user_profile_header + course_enrollment_header + enrollment_extra_headers + payment_info_header
+    rows.append(header)
+
     for student in enrolled_students:
         # Periodically update task status (this is a cache write)
         if task_progress.attempted % status_interval == 0:
@@ -814,17 +828,13 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
                 student_counter,
                 total_enrolled_students
             )
-        user_info = enrollment_provider.get_user_profile(student.id)
-        if not header:
-            user_info_header = [x[1] for x in USER_INFO_ATTRIBUTES]
-            user_profile_header = [x[1] for x in USER_PROFILE_ATTRIBUTES]
-            header = user_info_header + user_profile_header
-            rows.append(header)
+        user_info = enrollment_report_provider.get_user_profile(student.id, USER_INFO_ATTRIBUTES, USER_PROFILE_ATTRIBUTES)
+        course_enrollment_data = enrollment_report_provider.get_enrollment_info(
+            student, course_id, COURSE_ENROLLMENT_ATTRIBUTES
+        )
+        # enrollment_report_provider.get_payment_info(student, course_id)
 
-        user_info_data = [getattr(user_info, x[0]) for x in USER_INFO_ATTRIBUTES]
-        user_profile_data = [getattr(user_info.profile, x[0]) for x in USER_PROFILE_ATTRIBUTES]
-
-        rows.append(user_info_data+user_profile_data)
+        rows.append(user_info + course_enrollment_data)
 
     TASK_LOG.info(
         u'%s, Task type: %s, Current step: %s, Grade calculation completed for students: %s/%s',
