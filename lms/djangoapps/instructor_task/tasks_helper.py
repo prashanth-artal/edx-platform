@@ -17,7 +17,6 @@ from django.db import transaction, reset_queries
 import dogstats_wrapper as dog_stats_api
 from pytz import UTC
 from instructor.cybersource_enrollment_report import CyberSourceEnrollmentReportProvider
-from instructor.enrollment_report import BaseEnrollmentReportProvider
 
 from track.views import task_track
 from util.file import course_filename_prefix_generator, UniversalNewlineIterator
@@ -773,8 +772,8 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
     start_time = time()
     start_date = datetime.now(UTC)
     status_interval = 100
-    enrolled_students = CourseEnrollment.users_enrolled_in(course_id)
-    task_progress = TaskProgress(action_name, enrolled_students.count(), start_time)
+    students_in_course = CourseEnrollment.enrolled_and_dropped_out_users(course_id)
+    task_progress = TaskProgress(action_name, students_in_course.count(), start_time)
 
     fmt = u'Task: {task_id}, InstructorTask ID: {entry_id}, Course: {course_id}, Input: {task_input}'
     task_info_string = fmt.format(
@@ -785,33 +784,29 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
     )
     TASK_LOG.info(u'%s, Task type: %s, Starting task execution', task_info_string, action_name)
 
-    course = get_course_by_id(course_id)
-
     # Loop over all our students and build our CSV lists in memory
-    header = None
     rows = []
-    err_rows = [["id", "username", "error_msg"]]
     current_step = {'step': 'Gathering Profile Information'}
     enrollment_report_provider = CyberSourceEnrollmentReportProvider()
-    total_enrolled_students = enrolled_students.count()
+    total_students = students_in_course.count()
     student_counter = 0
     TASK_LOG.info(
         u'%s, Task type: %s, Current step: %s, Starting grade calculation for total students: %s',
         task_info_string,
         action_name,
         current_step,
-        total_enrolled_students
+        total_students
     )
     user_info_header = [x[1] for x in USER_INFO_ATTRIBUTES]
     user_profile_header = [x[1] for x in USER_PROFILE_ATTRIBUTES]
-    course_enrollment_header = [x[1] for x in COURSE_ENROLLMENT_ATTRIBUTES]
-    payment_info_header = ['List Price', 'Payment Amount', 'Coupon Code Used', 'Payment Status', 'Transaction Reference Number']
-    enrollment_extra_headers = ['Enrollment Source', 'Enrollment Role']
+    course_enrollment_header = ['Date Enrolled', 'Currently Enrolled', 'Enrollment Source', 'Enrollment Role']
+    payment_info_header = ['List Price', 'Payment Amount', 'Coupon Code Used', 'Payment Status',
+                           'Transaction Reference Number']
 
-    header = user_info_header + user_profile_header + course_enrollment_header + enrollment_extra_headers + payment_info_header
+    header = user_info_header + user_profile_header + course_enrollment_header + payment_info_header
     rows.append(header)
 
-    for student in enrolled_students:
+    for student in students_in_course:
         # Periodically update task status (this is a cache write)
         if task_progress.attempted % status_interval == 0:
             task_progress.update_task_state(extra_meta=current_step)
@@ -826,15 +821,14 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
                 action_name,
                 current_step,
                 student_counter,
-                total_enrolled_students
+                total_students
             )
-        user_info = enrollment_report_provider.get_user_profile(student.id, USER_INFO_ATTRIBUTES, USER_PROFILE_ATTRIBUTES)
-        course_enrollment_data = enrollment_report_provider.get_enrollment_info(
-            student, course_id, COURSE_ENROLLMENT_ATTRIBUTES
-        )
-        # enrollment_report_provider.get_payment_info(student, course_id)
+        user_data = enrollment_report_provider.get_user_profile(student.id, USER_INFO_ATTRIBUTES,
+                                                                USER_PROFILE_ATTRIBUTES)
+        course_enrollment_data = enrollment_report_provider.get_enrollment_info(student, course_id)
+        payment_data = enrollment_report_provider.get_payment_info(student, course_id)
 
-        rows.append(user_info + course_enrollment_data)
+        rows.append(user_data + course_enrollment_data + payment_data)
 
     TASK_LOG.info(
         u'%s, Task type: %s, Current step: %s, Grade calculation completed for students: %s/%s',
@@ -842,7 +836,7 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
         action_name,
         current_step,
         student_counter,
-        total_enrolled_students
+        total_students
     )
 
     # By this point, we've got the rows we're going to stuff into our CSV files.
@@ -852,10 +846,6 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
 
     # Perform the actual upload
     upload_csv_to_report_store(rows, 'enrollment_report', course_id, start_date)
-
-    # If there are any error rows (don't count the header), write them out as well
-    if len(err_rows) > 1:
-        upload_csv_to_report_store(err_rows, 'grade_report_err', course_id, start_date)
 
     # One last update before we close out...
     TASK_LOG.info(u'%s, Task type: %s, Finalizing detailed enrollment task', task_info_string, action_name)

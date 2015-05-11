@@ -348,15 +348,15 @@ def submit_calculate_students_features_csv(request, course_key, features):
     return submit_task(request, task_type, task_class, course_key, task_input, task_key)
 
 
-def submit_enrollment_report_features_csv(request, course_key, features):
+def submit_detailed_enrollment_features_csv(request, course_key):  # pylint: disable=invalid-name
     """
-    Submits a task to generate a CSV containing student profile info.
+    Submits a task to generate a CSV containing detailed enrollment info.
 
     Raises AlreadyRunningError if said CSV is already being updated.
     """
     task_type = 'detailed_enrollment_report'
     task_class = enrollment_report_features_csv
-    task_input = {'features': features}
+    task_input = {}
     task_key = ""
 
     return submit_task(request, task_type, task_class, course_key, task_input, task_key)

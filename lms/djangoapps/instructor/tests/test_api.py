@@ -85,6 +85,12 @@ REPORTS_DATA = (
         'instructor_api_endpoint': 'get_students_features',
         'task_api_endpoint': 'instructor_task.api.submit_calculate_students_features_csv',
         'extra_instructor_api_kwargs': {'csv': '/csv'}
+    },
+    {
+        'report_type': 'detailed enrollment',
+        'instructor_api_endpoint': 'get_enrollment_report',
+        'task_api_endpoint': 'instructor_task.api.submit_detailed_enrollment_features_csv',
+        'extra_instructor_api_kwargs': {}
     }
 )
 
@@ -192,6 +198,7 @@ class TestInstructorAPIDenyLevels(ModuleStoreTestCase, LoginEnrollmentTestCase):
             ('list_report_downloads', {}),
             ('calculate_grades_csv', {}),
             ('get_students_features', {}),
+            ('get_enrollment_report', {}),
         ]
         # Endpoints that only Instructors can access
         self.instructor_level_endpoints = [
@@ -2013,6 +2020,26 @@ class TestInstructorAPILevelsDataDump(ModuleStoreTestCase, LoginEnrollmentTestCa
         res_json = json.loads(response.content)
 
         self.assertEqual('cohort' in res_json['feature_names'], is_cohorted)
+
+    def test_enrollment_report_features_csv(self):
+        """
+        Test that some minimum of information is formatted
+        correctly in the response to get_students_features.
+        """
+        for i in range(2):
+            course_registration_code = CourseRegistrationCode(
+                code='sale_invoice{}'.format(i),
+                course_id=self.course.id.to_deprecated_string(),
+                created_by=self.instructor,
+                invoice=self.sale_invoice_1,
+                invoice_item=self.invoice_item,
+                mode_slug='honor'
+            )
+            course_registration_code.save()
+        url = reverse('get_enrollment_report', kwargs={'course_id': self.course.id.to_deprecated_string()})
+        response = self.client.get(url, {})
+        self.assertIn('Your detailed enrollment report is being generated!', response.content)
+        res_json = json.loads(response.content)
 
     @patch.object(instructor.views.api, 'anonymous_id_for_user', Mock(return_value='42'))
     @patch.object(instructor.views.api, 'unique_id_for_user', Mock(return_value='41'))

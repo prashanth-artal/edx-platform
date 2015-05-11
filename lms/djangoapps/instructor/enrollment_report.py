@@ -21,13 +21,13 @@ class BaseEnrollmentReportProvider(EnrollmentReportProvider):
         user_profile_data = [getattr(user_info.profile, x[0]) for x in user_profile_attributes]
         return user_info_data + user_profile_data
 
-    def get_enrollment_info(self, user, course_id, course_enrollment_attributes):
+    def get_enrollment_info(self, user, course_id):
         """
         Returns the User Enrollment information.
         """
         raise NotImplementedError()
 
-    def get_payment_info(self, user_id, course_id):
+    def get_payment_info(self, user, course_id):
         """
         Returns the User Payment information.
         """

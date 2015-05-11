@@ -1095,21 +1095,18 @@ def get_coupon_codes(request, course_id):  # pylint: disable=unused-argument
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
-def get_enrollment_report(request, course_id):  # pylint: disable=unused-argument
+def get_enrollment_report(request, course_id):
     """
     get the enrollment report for the particular course.
     """
     course_key = SlashSeparatedCourseKey.from_deprecated_string(course_id)
-    query_features = [
-        'code', 'course_id', 'percentage_discount', 'code_redeemed_count', 'description', 'expiration_date', 'is_active'
-    ]
     try:
-        instructor_task.api.submit_enrollment_report_features_csv(request, course_key, query_features)
-        success_status = _("Your enrollment report is being generated! "
+        instructor_task.api.submit_detailed_enrollment_features_csv(request, course_key)
+        success_status = _("Your detailed enrollment report is being generated! "
                            "You can view the status of the generation task in the 'Pending Instructor Tasks' section.")
         return JsonResponse({"status": success_status})
     except AlreadyRunningError:
-        already_running_status = _("A grade report generation task is already in progress. "
+        already_running_status = _("A detailed enrollment report generation task is already in progress. "
                                    "Check the 'Pending Instructor Tasks' table for the status of the task. "
                                    "When completed, the report will be available for download in the table below.")
         return JsonResponse({

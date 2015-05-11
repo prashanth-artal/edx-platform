@@ -1165,12 +1165,15 @@ class RegistrationCodeRedemption(models.Model):
     course_enrollment = models.ForeignKey(CourseEnrollment, null=True)
 
     @classmethod
-    def is_registration_code_user_for_enrollment(cls, course_enrollment):
+    def registration_code_used_for_enrollment(cls, course_enrollment):
         """
-        Returns True if registration code has been used during the
-        course enrollment else Returns False.
+        Returns RegistrationCodeRedemption object if registration code
+        has been used during the course enrollment else Returns None.
         """
-        return cls.objects.filter(course_enrollment=course_enrollment).exists()
+        try:
+            return cls.objects.get(course_enrollment=course_enrollment)
+        except RegistrationCodeRedemption.DoesNotExist:
+            return None
 
     @classmethod
     def is_registration_code_redeemed(cls, course_reg_code):
@@ -1307,12 +1310,12 @@ class PaidCourseRegistration(OrderItem):
     @classmethod
     def get_course_item_for_user_enrollment(cls, user, course_id, course_enrollment):
         """
-        Returns True if user has payed for the course enrollment else
-        Returns False
+        Returns PaidCourseRegistration object if user has payed for
+        the course enrollment else Returns None
         """
         try:
-            return cls.objects.get(course_id=course_id, user=user, course_enrollment=course_enrollment,
-                                                   status='purchased')
+            return cls.objects.filter(course_id=course_id, user=user, course_enrollment=course_enrollment,
+                                      status='purchased').latest('id')
         except PaidCourseRegistration.DoesNotExist:
             return None
 
@@ -1473,6 +1476,17 @@ class CourseRegCodeItem(OrderItem):
     """
     course_id = CourseKeyField(max_length=128, db_index=True)
     mode = models.SlugField(default=CourseMode.DEFAULT_MODE_SLUG)
+
+    @classmethod
+    def get_course_item_for_user_enrollment(cls, user, course_id):
+        """
+        Returns True if user has payed for the course enrollment else
+        Returns False
+        """
+        try:
+            return cls.objects.filter(course_id=course_id, user=user, status='purchased').latest('id')
+        except CourseRegCodeItem.DoesNotExist:
+            return None
 
     @classmethod
     def contained_in_order(cls, order, course_id):
