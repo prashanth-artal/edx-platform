@@ -171,7 +171,6 @@ def get_required_content(course, user):
                 unicode(course.id),
                 serialize_user(user)
             )
-        # Exception when milestone is not found
         except InvalidMilestoneRelationshipTypeException:
             return required_content
 

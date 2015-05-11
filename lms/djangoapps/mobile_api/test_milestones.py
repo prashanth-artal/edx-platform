@@ -5,9 +5,9 @@ from mock import patch
 
 from django.conf import settings
 
-from courseware.tests.test_entrance_exam import (
+from courseware.tests.helpers import (
     answer_entrance_exam_problem,
-    create_mock_request,
+    get_request_for_user,
     add_entrance_exam_milestone,
 )
 from util.milestones_helpers import add_prerequisite_course, fulfill_course_milestone
@@ -33,7 +33,6 @@ class MobileAPIMilestonesMixin(object):
 
     def _add_entrance_exam(self):
         """ Sets up entrance exam """
-        # Set up the extrance exam
         self.course.entrance_exam_enabled = True
 
         self.entrance_exam = ItemFactory.create(  # pylint: disable=attribute-defined-outside-init
@@ -64,8 +63,7 @@ class MobileAPIMilestonesMixin(object):
 
     def _pass_entrance_exam(self):
         """ Helper function to pass the entrance exam """
-        # set up the request for exam functions
-        request = create_mock_request(self.user)
+        request = get_request_for_user(self.user)
         answer_entrance_exam_problem(self.course, request, self.problem_1)
 
     def verify_unfulfilled_milestone_response(self):
