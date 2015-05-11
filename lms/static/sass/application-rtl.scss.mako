@@ -46,7 +46,9 @@
 @import 'shared/fields';
 @import 'shared/forms';
 @import 'shared/footer';
-@import 'shared/footer-v3';
+% if env["FEATURES"].get("ENABLE_FOOTER_V3", True):
+  @import 'shared/footer-v3';
+% endif
 @import 'shared/header';
 @import 'shared/course_object';
 @import 'shared/course_filter';
