@@ -130,6 +130,9 @@ class InstructorTaskCourseTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase)
         self.add_course_content()
 
     def add_course_content(self):
+        """
+        Add a chapter and a sequential to the current course.
+        """
         # Add a chapter to the course
         chapter = ItemFactory.create(parent_location=self.course.location,
                                      display_name=TEST_SECTION_NAME)

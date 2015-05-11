@@ -104,8 +104,8 @@ class AccountView(APIView):
                 * requires_parental_consent: true if the user is a minor
                   requiring parental consent.
 
-                * language_proficiencies: array of language preferences. Each
-                  preference is a JSON object with the following keys:
+                * language_proficiencies: array of language preferences.
+                    Each preference is a JSON object with the following keys:
 
                     * "code": string ISO 639-1 language code e.g. "en".
 

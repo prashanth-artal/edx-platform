@@ -781,7 +781,9 @@ def upload_problem_grade_report(_xmodule_instance_args, _entry_id, course_id, _t
         blocks = course_structure.ordered_blocks
         problems = _order_problems(blocks)
     except CourseStructure.DoesNotExist:
-        return task_progress.update_task_state(extra_meta={'step': 'Generating course structure. Please refresh and try again.'})
+        return task_progress.update_task_state(
+            extra_meta={'step': 'Generating course structure. Please refresh and try again.'}
+        )
 
     # Just generate the static fields for now.
     rows = [list(header_row.values()) + ['Final Grade'] + list(chain.from_iterable(problems.values()))]
