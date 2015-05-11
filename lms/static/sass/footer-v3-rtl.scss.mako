@@ -5,13 +5,12 @@
 
 // libs and resets *do not edit*
 @import 'bourbon/bourbon'; // lib - bourbon
-@import 'vendor/bi-app/bi-app-rtl'; // set the layout for right to left languages
+@import 'vendor/bi-app/bi-app-rtl'; // set the layout for left to right languages
 
 // BASE  *default edX offerings*
 // ====================
 
 // base - utilities
-@import 'base/reset';
 @import 'base/variables';
 @import 'base/mixins';
 
@@ -28,32 +27,19 @@
   @import '${env.get('THEME_NAME')}';
 % endif
 
-@import 'base/base';
-
 // base - assets
 @import 'base/font_face';
-@import 'base/extends';
-@import 'base/animations';
 
-// base - starter
-@import 'base/base';
+footer#footer-edx-v3 {
+    @import 'base/extends';
+
+    // base - starter
+    @import 'base/base';
+
+}
 
 // base - elements
 @import 'elements/typography';
-@import 'elements/controls';
 
-// shared - course
-@import 'shared/fields';
-@import 'shared/forms';
-@import 'shared/footer';
+// shared - platform
 @import 'shared/footer-v3';
-@import 'shared/header';
-@import 'shared/course_object';
-@import 'shared/course_filter';
-@import 'shared/modal';
-@import 'shared/activation_messages';
-@import 'shared/unsubscribe';
-
-@import 'developer'; // used for any developer-created scss that needs further polish/refactoring
-@import 'shame';     // used for any bad-form/orphaned scss
-## NOTE: needed here for cascade and dependency purposes, but not a great permanent solution
