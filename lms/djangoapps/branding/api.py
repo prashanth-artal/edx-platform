@@ -1,7 +1,5 @@
 """Edx footer API
-
 """
-from django.http import HttpResponse
 import logging
 from util.json_request import JsonResponse
 from django.conf import settings
@@ -9,8 +7,6 @@ from django.utils.translation import ugettext as _
 from microsite_configuration import microsite
 
 log = logging.getLogger("edx.footer")
-
-
 
 
 def get_footer():
@@ -28,11 +24,11 @@ def get_footer():
 
 def copy_right():
 
-    data = ("(c) 2015 edX Inc." +
-                "EdX, Open edX, and the edX and Open edX logos are registered trademarks" +
-                " or trademarks of edX Inc.")
+    data = _("(c) 2015 edX Inc. EdX, Open edX, and the edX and Open edX logos "
+             "are registered trademarks or trademarks of edX Inc.")
 
     return data
+
 
 def heading():
 
@@ -44,6 +40,7 @@ def heading():
             " statistics and more. EdX is a non-profit online initiative created by founding partners" +
             " Harvard and MIT.")
     return data
+
 
 def social_links():
 
