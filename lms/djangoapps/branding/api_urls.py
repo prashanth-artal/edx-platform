@@ -8,5 +8,5 @@ urlpatterns = patterns(
     '',
 
     url(r'^footer/$',
-        'branding.api.get_footer', name="get_footer"),
+        'branding.views.footer', name="get_footer_data"),
 )

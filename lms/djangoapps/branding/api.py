@@ -4,17 +4,21 @@
 from django.http import HttpResponse
 import logging
 from util.json_request import JsonResponse
+from django.conf import settings
+from django.utils.translation import ugettext as _
+from microsite_configuration import microsite
 
 log = logging.getLogger("edx.footer")
 
 
-def get_footer(request):
+def get_footer():
 
-    context = {}
+    site_name = microsite.get_value('SITE_NAME', settings.SITE_NAME)
+    context = dict()
 
-    context["logo_img"] = "/sites/all/themes/atedx/images/edx-logo-footer.png"
+    context["logo_img"] = "{site_name}/sites/all/themes/atedx/images/edx-logo-footer.png".format(site_name=site_name)
     context["social_links"] = social_links()
-    context["about_links"] = about_edx_link()
+    context["about_links"] = about_edx_link(site_name)
 
     return JsonResponse({"footer": context}, 200)
 
@@ -24,82 +28,84 @@ def social_links():
     return [
         {
             "provider": "facebook",
-            "title": "Facebook",
+            "title": _("Facebook"),
             "url": "http://www.facebook.com/EdxOnline"
         },
         {
             "provider": "twitter",
-            "title": "Twitter",
+            "title": _("Twitter"),
             "url": "https://twitter.com/edXOnline"
         },
         {
             "provider": "linkedin",
-            "title": "LinkedIn",
+            "title": _("LinkedIn"),
             "url": "http://www.linkedin.com/company/edx"
         },
         {
             "provider": "google",
-            "title": "Google+",
+            "title": _("Google+"),
             "url": "https://plus.google.com/+edXOnline"
         },
         {
             "provider": "tumblr",
-            "title": "Tumblr",
+            "title": _("Tumblr"),
             "url": "http://edxstories.tumblr.com/"
         },
         {
             "provider": "meetup",
-            "title": "Meetup",
+            "title": _("Meetup"),
             "url": "http://www.meetup.com/edX-Global-Community"
         },
         {
             "provider": "reddit",
-            "title": "Reddit",
+            "title": _("Reddit"),
             "url": "http://www.reddit.com/r/edx"
         },
         {
             "provider": "youtube",
-            "title": "Youtube",
+            "title": _("Youtube"),
             "url": "https://www.youtube.com/user/edxonline?sub_confirmation=1"
         },
     ]
 
-def about_edx_link():
+
+def about_edx_link(site_name):
 
     return [
         {
-            "title":"About",
-            "url": "/about-us"
+            "title": _("About"),
+            "url": "{}/about-us".format(site_name)
         },
         {
-            "title":"News & Announcements",
-            "url": "/news-announcements"
+            "title": _("News & Announcements"),
+            "url": "{}/news-announcements".format(site_name)
         },
         {
-            "title":"Contact",
-            "url": "/contact-us"
+            "title": _("Contact"),
+            "url": "{}/contact-us".format(site_name)
         },
         {
-            "title":"FAQs",
-            "url": "/about/student-faq"
+            "title": _("FAQs"),
+            "url": "{}/about/student-faq".format(site_name)
         },
         {
-            "title":"edX Blog",
-            "url": "/edx-blog"
+            "title": _("edX Blog"),
+            "url": "{}/edx-blog".format(site_name)
         },
         {
-            "title":"Donate to edX",
-            "url": "/donate"
+            "title": _("Donate to edX"),
+            "url": "{}/donate".format(site_name)
         },
         {
-            "title":"Jobs at edX",
-            "url": "/jobs"
+            "title": _("Jobs at edX"),
+            "url": "{}/jobs".format(site_name)
         },
         {
-            "title":"Site Map",
-            "url": "/sitemap"
+            "title": _("Site Map"),
+            "url": "{}/sitemap".format(site_name)
         },
     ]
+
 
 def footer_heading():
     return ""
