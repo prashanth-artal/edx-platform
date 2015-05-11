@@ -5,23 +5,18 @@ Registers the CCX feature for the edX platform.
 from django.utils.translation import ugettext as _
 
 
-class CcxFeature(object):
+class CcxCourseViewType(object):
     """
-    The representation of the CCX feature.
+    The representation of the CCX course view type.
     """
 
-    title = "CCX"
+    name = "ccx_coach"
+    title = _("CCX Coach")
+    view_name = "ccx_coach_dashboard"
+    is_persistent = False
 
-    # Register a course tab
-    course_tab = {
-        "name": "ccx_coach",
-        "title": _('CCX Coach'),
-        "view_name": "ccx_coach_dashboard",
-        "is_persistent": False,
-    }
-
-    @staticmethod
-    def is_enabled(course, settings, user=None):
+    @classmethod
+    def is_enabled(cls, course, settings, user=None):
         """
         Returns true if CCX has been enabled and the specified user is a coach
         """

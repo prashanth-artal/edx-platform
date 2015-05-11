@@ -176,10 +176,13 @@ class CourseTab(object):
                 'Unknown tab type {0}. Known types: {1}'.format(tab_type_name, available_tab_types)
             )
         tab_type = available_tab_types[tab_dict['type']]
-        tab_type.validate(tab_dict)
-        if isinstance(tab_type, CourseFeatureTabType):
-            return tab_type.create_tab(tab_dict)
+        # TODO: don't import openedx capabilities from common
+        from openedx.core.djangoapps.plugins.api import Plugin
+        if isinstance(tab_type, Plugin):
+            CourseViewTab.validate(tab_dict)
+            return CourseViewTab(tab_type, tab_dict=tab_dict)
         else:
+            tab_type.validate(tab_dict)
             return tab_type(tab_dict=tab_dict)
 
 
@@ -213,12 +216,11 @@ class CourseTabManager(object):
                 'syllabus': SyllabusTab,
             }
 
-            # Add any course tabs that have been registered by features
+            # Add any registered course views
             # TODO: don't import openedx capabilities from common
-            from openedx.core.djangoapps.features.api import FeatureManager
-            for feature in FeatureManager.get_available_features().values():
-                if hasattr(feature, "course_tab"):
-                    tab_types[feature.name] = CourseFeatureTabType(feature)
+            from openedx.core.djangoapps.plugins.api import CourseViewTypeManager
+            for course_view_type in CourseViewTypeManager.get_available_plugins().values():
+                tab_types[course_view_type.name] = course_view_type
 
             CourseTabManager._tab_types = tab_types
         return CourseTabManager._tab_types
@@ -251,8 +253,8 @@ class EnrolledOrStaffTab(AuthenticatedCourseTab):
             return True
         return EnrolledOrStaffTab.is_user_enrolled_or_staff(course, user)
 
-    @staticmethod
-    def is_user_enrolled_or_staff(course, user):
+    @classmethod
+    def is_user_enrolled_or_staff(cls, course, user):
         from student.models import CourseEnrollment
         from courseware.access import has_access
         return has_access(user, 'staff', course, course.id) or CourseEnrollment.is_enrolled(user, course.id)
@@ -725,55 +727,27 @@ class NotesTab(AuthenticatedCourseTab):
         return super(NotesTab, cls).validate(tab_dict, raise_error) and need_name(tab_dict, raise_error)
 
 
-class CourseFeatureTabType(object):
+class CourseViewTab(AuthenticatedCourseTab):
     """
-    The type of a tab provided by a course feature.
-    """
-
-    def __init__(self, feature):
-        super(CourseFeatureTabType, self).__init__()
-        self.feature = feature
-
-    def is_persistent(self):
-        """
-        Returns true if this feature's tab is persistent.
-        """
-        return self.feature.course_tab.get("is_persistent", True)
-
-    def validate(self, tab_dict, raise_error=True):
-        """
-        Validates that the specified dict is as expected.
-        """
-        pass
-
-    def create_tab(self, tab_dict):
-        """
-        Creates a tab instance of the correct type.
-        """
-        return CourseFeatureTab(self.feature, self.feature.course_tab, tab_dict=tab_dict)
-
-
-class CourseFeatureTab(AuthenticatedCourseTab):
-    """
-    A tab provided by a feature that has been included in a course.
+    A tab that renders a course view.
     """
 
-    def __init__(self, feature, course_tab, tab_dict=None):
-        super(CourseFeatureTab, self).__init__(
-            name=tab_dict['name'] if tab_dict else course_tab.get("title"),
-            tab_id=course_tab.get("type"),
-            link_func=link_reverse_func(course_tab.get("view_name")),
+    def __init__(self, course_view_type, tab_dict=None):
+        super(CourseViewTab, self).__init__(
+            name=tab_dict['name'] if tab_dict else course_view_type.title,
+            tab_id=course_view_type.name,
+            link_func=link_reverse_func(course_view_type.view_name),
         )
-        self.feature = feature
+        self.course_view_type = course_view_type
 
     def is_enabled(self, course, settings, user=None):
-        if not super(CourseFeatureTab, self).is_enabled(course, settings, user=user):
+        if not super(CourseViewTab, self).is_enabled(course, settings, user=user):
             return False
-        return self.feature.is_enabled(course, settings, user=user)
+        return self.course_view_type.is_enabled(course, settings, user=user)
 
     @classmethod
     def validate(cls, tab_dict, raise_error=True):
-        return super(CourseFeatureTab, cls).validate(tab_dict, raise_error) and need_name(tab_dict, raise_error)
+        return super(CourseViewTab, cls).validate(tab_dict, raise_error) and need_name(tab_dict, raise_error)
 
 
 class CourseTabList(List):
@@ -866,20 +840,6 @@ class CourseTabList(List):
                 else:
                     yield tab
 
-    @staticmethod
-    def get_dynamic_tabs(course, settings, user=None):
-        """
-        Returns the dynamic tab types, i.e. that are not persistent.
-        """
-        dynamic_tabs = list()
-        for tab_type in CourseTabManager.get_tab_types().values():
-            if isinstance(tab_type, CourseFeatureTabType) and not tab_type.is_persistent():
-                tab = tab_type.create_tab({})
-                if tab.is_enabled(course, settings, user=user):
-                    dynamic_tabs.append(tab)
-        dynamic_tabs.sort(key=lambda tab_type: tab_type.name)
-        return dynamic_tabs
-
     @classmethod
     def validate_tabs(cls, tabs):
         """
@@ -913,7 +873,7 @@ class CourseTabList(List):
                 TextbookTabs.type,
                 PDFTextbookTabs.type,
                 HtmlTextbookTabs.type,
-                CourseFeatureTab.type
+                CourseViewTab.type
         ]:
             cls._validate_num_tabs_of_type(tabs, tab_type, 1)
 

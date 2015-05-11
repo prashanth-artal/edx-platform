@@ -6,8 +6,8 @@ from setuptools import setup
 
 setup(
     name="Open edX",
-    version="0.2",
-    install_requires=['distribute'],
+    version="0.3",
+    install_requires=["distribute"],
     requires=[],
     # NOTE: These are not the names we should be installing.  This tree should
     # be reorganized to be a more conventional Python tree.
@@ -18,15 +18,14 @@ setup(
         "cms",
     ],
     entry_points={
-        'openedx.feature': [
-            'ccx = lms.djangoapps.ccx.feature:CcxFeature',
-            'edxnotes = lms.djangoapps.edxnotes.feature:EdxNotesFeature',
-            'instructor_tab = lms.djangoapps.instructor.feature:InstructorTabFeature',
-            'teams = lms.djangoapps.teams.feature:TeamsFeature',
+        "openedx.course_view_type": [
+            "ccx = lms.djangoapps.ccx.plugins:CcxCourseViewType",
+            "edxnotes = lms.djangoapps.edxnotes.plugins:EdxNotesCourseViewType",
+            "instructor = lms.djangoapps.instructor.plugins:InstructorViewType",
         ],
-        'openedx.user_partition_scheme': [
-            'random = openedx.core.djangoapps.user_api.partition_schemes:RandomUserPartitionScheme',
-            'cohort = openedx.core.djangoapps.course_groups.partition_scheme:CohortPartitionScheme',
+        "openedx.user_partition_scheme": [
+            "random = openedx.core.djangoapps.user_api.partition_schemes:RandomUserPartitionScheme",
+            "cohort = openedx.core.djangoapps.course_groups.partition_scheme:CohortPartitionScheme",
         ],
     }
 )
