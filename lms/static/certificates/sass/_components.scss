@@ -192,10 +192,18 @@ a.btn {
         display: inline-block;
         vertical-align: middle;
         margin-right: spacing-horizontal(small);
-        font-size: font-size(mid-large);
 
         &:last-child {
             margin-right: 0;
+        }
+
+        .icon {
+            margin-right: spacing-horizontal(x-small);
+        }
+
+        // CASE mozilla open badges logo
+        .icon-mozillaopenbadges {
+            width: rem(18);
         }
     }
 }

@@ -71,17 +71,17 @@
 
         .message-copy {
             margin-bottom: spacing-vertical(small);
-
-            @include susy-breakpoint($bp-large, $susy) {
-                @include span(8 first);
-                margin-bottom: 0;
-            }
         }
 
-        .message-actions {
-            @include susy-breakpoint($bp-large, $susy) {
-                @include span(4 last);
-                text-align: right;
+        .action {
+            margin-bottom: spacing-vertical(x-small);
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            @include susy-breakpoint($bp-medium, $susy) {
+                margin-bottom: 0;
             }
         }
     }
