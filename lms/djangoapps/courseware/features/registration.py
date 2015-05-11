@@ -51,7 +51,7 @@ def i_unenroll_from_that_course(_step, course):
     assert world.is_css_present(more_actions_dropdown_link_selector)
     world.css_click(more_actions_dropdown_link_selector)
 
-    unregister_css = 'li.dropdown-item a.action-unenroll[data-course-number*="{course_number}"][href*=unenroll-modal]'.format(course_number=course)
+    unregister_css = 'a.action-unenroll[data-course-number*="{course_number}"][href*=unenroll-modal]'.format(course_number=course)
     assert world.is_css_present(unregister_css)
     world.css_click(unregister_css)
 
