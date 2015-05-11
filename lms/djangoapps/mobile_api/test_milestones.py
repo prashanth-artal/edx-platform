@@ -5,11 +5,8 @@ from mock import patch
 
 from django.conf import settings
 
-from courseware.tests.helpers import (
-    answer_entrance_exam_problem,
-    get_request_for_user,
-    add_entrance_exam_milestone,
-)
+from courseware.tests.helpers import get_request_for_user
+from courseware.tests.test_entrance_exam import answer_entrance_exam_problem, add_entrance_exam_milestone
 from util.milestones_helpers import add_prerequisite_course, fulfill_course_milestone
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory

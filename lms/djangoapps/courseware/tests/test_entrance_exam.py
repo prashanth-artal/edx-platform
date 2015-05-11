@@ -7,13 +7,11 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from courseware.model_data import FieldDataCache
-from courseware.module_render import toc_for_course
+from courseware.module_render import toc_for_course, get_module
 from courseware.tests.factories import UserFactory, InstructorFactory, StaffFactory
 from courseware.tests.helpers import (
     LoginEnrollmentTestCase,
-    get_request_for_user,
-    answer_entrance_exam_problem,
-    add_entrance_exam_milestone
+    get_request_for_user
 )
 from courseware.entrance_exams import (
     course_has_entrance_exam,
@@ -22,7 +20,15 @@ from courseware.entrance_exams import (
     user_can_skip_entrance_exam,
     user_has_passed_entrance_exam,
 )
-from util.milestones_helpers import seed_milestone_relationship_types
+from util.milestones_helpers import (
+    add_milestone,
+    add_course_milestone,
+    get_namespace_choices,
+    generate_milestone_namespace,
+    add_course_content_milestone,
+    get_milestone_relationship_types,
+    seed_milestone_relationship_types,
+)
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
@@ -559,3 +565,69 @@ class EntranceExamTestCases(LoginEnrollmentTestCase, ModuleStoreTestCase):
         )
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+
+def answer_entrance_exam_problem(course, request, problem, user=None):
+    """
+    Takes a required milestone `problem` in a `course` and fulfills it.
+
+    Args:
+        course (Course): Course object, the course the required problem is in
+        request (Request): request Object
+        problem (xblock): xblock object, the problem to be fulfilled
+        user (User): User object in case it is different from request.user
+    """
+    if not user:
+        user = request.user
+
+    # pylint: disable=maybe-no-member,no-member
+    grade_dict = {'value': 1, 'max_value': 1, 'user_id': user.id}
+    field_data_cache = FieldDataCache.cache_for_descriptor_descendents(
+        course.id,
+        user,
+        course,
+        depth=2
+    )
+    # pylint: disable=protected-access
+    module = get_module(
+        user,
+        request,
+        problem.scope_ids.usage_id,
+        field_data_cache,
+    )._xmodule
+    module.system.publish(problem, 'grade', grade_dict)
+
+
+def add_entrance_exam_milestone(course, entrance_exam):
+    """
+    Adds the milestone for given `entrance_exam` in `course`
+
+    Args:
+        course (Course): Course object in which the extrance_exam is located
+        entrance_exam (xblock): xblock object, the entrance exam to be added as a milestone
+    """
+    namespace_choices = get_namespace_choices()
+    milestone_relationship_types = get_milestone_relationship_types()
+
+    milestone_namespace = generate_milestone_namespace(
+        namespace_choices.get('ENTRANCE_EXAM'),
+        course.id
+    )
+    milestone = add_milestone(
+        {
+            'name': 'Test Milestone',
+            'namespace': milestone_namespace,
+            'description': 'Testing Courseware Entrance Exam Chapter',
+        }
+    )
+    add_course_milestone(
+        unicode(course.id),
+        milestone_relationship_types['REQUIRES'],
+        milestone
+    )
+    add_course_content_milestone(
+        unicode(course.id),
+        unicode(entrance_exam.location),
+        milestone_relationship_types['FULFILLS'],
+        milestone
+    )
