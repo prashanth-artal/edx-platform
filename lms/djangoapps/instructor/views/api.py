@@ -1956,7 +1956,7 @@ def calculate_grades_csv(request, course_id):
 @require_level('staff')
 def problem_grade_report(request, course_id):
     """
-    Request a CSV showing students' weighted grades for all problems in the
+    Request a CSV showing students' grades for all problems in the
     course.
 
     AlreadyRunningError is raised if the course's grades are already being
