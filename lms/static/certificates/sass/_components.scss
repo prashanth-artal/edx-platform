@@ -430,7 +430,6 @@ a.btn {
         margin-right: spacing-horizontal(small);
 
         .src {
-            display: block;
             max-height: 100%;
             border: rem(4) solid palette(grayscale, white-t);
         }
@@ -532,7 +531,7 @@ a.btn {
     }
 }
 
-// certificate - distinguished
+// certificate - base
 .certificate-base {
 
     .introduction {
