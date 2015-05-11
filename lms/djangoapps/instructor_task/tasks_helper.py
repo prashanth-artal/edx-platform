@@ -796,7 +796,7 @@ def upload_problem_grade_report(_xmodule_instance_args, _entry_id, course_id, _t
 
         if err_msg:
             # There was an error grading this student.
-            error_rows.append(student_fields + err_msg)
+            error_rows.append(student_fields + [err_msg])
             task_progress.failed += 1
             continue
 
