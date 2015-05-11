@@ -252,7 +252,7 @@ class CourseStructure(CourseViewMixin, RetrieveAPIView):
     """
 
     @CourseViewMixin.course_check
-    def get(self, request):
+    def get(self, request, **kwargs):
         try:
             return Response(api.course_structure(self.course_key))
         except CourseStructureNotAvailableError:
@@ -288,5 +288,5 @@ class CourseGradingPolicy(CourseViewMixin, ListAPIView):
     allow_empty = False
 
     @CourseViewMixin.course_check
-    def get(self, request):
+    def get(self, request, **kwargs):
         return Response(api.course_grading_policy(self.course_key))
