@@ -11,17 +11,39 @@ from microsite_configuration import microsite
 log = logging.getLogger("edx.footer")
 
 
+
+
 def get_footer():
 
     site_name = microsite.get_value('SITE_NAME', settings.SITE_NAME)
     context = dict()
-
+    context["copy_right"] = copy_right()
+    context["heading"] = heading()
     context["logo_img"] = "{site_name}/sites/all/themes/atedx/images/edx-logo-footer.png".format(site_name=site_name)
     context["social_links"] = social_links()
     context["about_links"] = about_edx_link(site_name)
 
     return JsonResponse({"footer": context}, 200)
 
+
+def copy_right():
+
+    data = ("(c) 2015 edX Inc." +
+                "EdX, Open edX, and the edX and Open edX logos are registered trademarks" +
+                " or trademarks of edX Inc.")
+
+    return data
+
+def heading():
+
+    data = ("EdX offers interactive online classes and MOOCs from the world's best universities," +
+            " colleges and organizations. Online courses from MITx, HarvardX, BerkeleyX, UTx and" +
+            " many other universities can be taken here. Topics include biology, business, chemistry," +
+            " computer science, economics, finance, electronics, engineering, food and nutrition," +
+            " history, humanities, law, literature, math, medicine, music, philosophy, physics, science," +
+            " statistics and more. EdX is a non-profit online initiative created by founding partners" +
+            " Harvard and MIT.")
+    return data
 
 def social_links():
 
