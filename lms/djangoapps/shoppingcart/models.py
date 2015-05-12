@@ -7,6 +7,7 @@ from decimal import Decimal
 import json
 import analytics
 from io import BytesIO
+from django.db.models import Q
 import pytz
 import logging
 import smtplib
@@ -979,6 +980,17 @@ class InvoiceTransaction(TimeStampedModel):
     )
     created_by = models.ForeignKey(User)
     last_modified_by = models.ForeignKey(User, related_name='last_modified_by_user')
+
+    @classmethod
+    def get_invoice_transaction(cls, invoice_id):
+        """
+        if found Returns the Invoice Transaction object for the given invoice_id
+        else returns None
+        """
+        try:
+            return cls.objects.get(Q(invoice_id=invoice_id), Q(status='completed') | Q(status='refunded'))
+        except InvoiceTransaction.DoesNotExist:
+            return None
 
     def snapshot(self):
         """Create a snapshot of the invoice transaction.

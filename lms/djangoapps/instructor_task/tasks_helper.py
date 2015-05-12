@@ -52,30 +52,6 @@ UPDATE_STATUS_SUCCEEDED = 'succeeded'
 UPDATE_STATUS_FAILED = 'failed'
 UPDATE_STATUS_SKIPPED = 'skipped'
 
-USER_INFO_ATTRIBUTES = [
-    ('id', 'User Id'),
-    ('username', 'User Name'),
-    ('first_name', 'First Name'),
-    ('last_name', 'Last Name'),
-]
-
-USER_PROFILE_ATTRIBUTES = [
-    ('language', 'Language'),
-    ('location', 'Location'),
-    ('year_of_birth', 'Year of Birth'),
-    ('gender', 'Gender'),
-    ('level_of_education', 'Level of Education'),
-    ('mailing_address', 'Mailing Address'),
-    ('goals', 'Goals'),
-    ('city', 'City'),
-    ('country', 'Country'),
-]
-
-COURSE_ENROLLMENT_ATTRIBUTES = [
-    ('created', 'Date Enrolled'),
-    ('is_active', 'Currently Enrolled')
-]
-
 
 class BaseInstructorTask(Task):
     """
@@ -786,6 +762,7 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
 
     # Loop over all our students and build our CSV lists in memory
     rows = []
+    header = None
     current_step = {'step': 'Gathering Profile Information'}
     enrollment_report_provider = CyberSourceEnrollmentReportProvider()
     total_students = students_in_course.count()
@@ -797,14 +774,6 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
         current_step,
         total_students
     )
-    user_info_header = [x[1] for x in USER_INFO_ATTRIBUTES]
-    user_profile_header = [x[1] for x in USER_PROFILE_ATTRIBUTES]
-    course_enrollment_header = ['Date Enrolled', 'Currently Enrolled', 'Enrollment Source', 'Enrollment Role']
-    payment_info_header = ['List Price', 'Payment Amount', 'Coupon Code Used', 'Payment Status',
-                           'Transaction Reference Number']
-
-    header = user_info_header + user_profile_header + course_enrollment_header + payment_info_header
-    rows.append(header)
 
     for student in students_in_course:
         # Periodically update task status (this is a cache write)
@@ -814,7 +783,7 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
 
         # Now add a log entry after certain intervals to get a hint that task is in progress
         student_counter += 1
-        if student_counter % 1000 == 0:
+        if student_counter % 100 == 0:
             TASK_LOG.info(
                 u'%s, Task type: %s, Current step: %s, gathering enrollment profile for students in progress: %s/%s',
                 task_info_string,
@@ -823,12 +792,17 @@ def upload_enrollment_report(_xmodule_instance_args, _entry_id, course_id, _task
                 student_counter,
                 total_students
             )
-        user_data = enrollment_report_provider.get_user_profile(student.id, USER_INFO_ATTRIBUTES,
-                                                                USER_PROFILE_ATTRIBUTES)
+
+        user_data = enrollment_report_provider.get_user_profile(student.id)
         course_enrollment_data = enrollment_report_provider.get_enrollment_info(student, course_id)
         payment_data = enrollment_report_provider.get_payment_info(student, course_id)
 
-        rows.append(user_data + course_enrollment_data + payment_data)
+        if not header:
+            header = user_data.keys() + course_enrollment_data.keys() + payment_data.keys()
+            rows.append(header)
+
+        rows.append(user_data.values() + course_enrollment_data.values() + payment_data.values())
+        task_progress.succeeded += 1
 
     TASK_LOG.info(
         u'%s, Task type: %s, Current step: %s, Grade calculation completed for students: %s/%s',

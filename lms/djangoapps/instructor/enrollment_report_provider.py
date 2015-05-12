@@ -18,7 +18,7 @@ class EnrollmentReportProvider(object):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def get_user_profile(self, user_id, user_info_attributes, user_profile_attributes):
+    def get_user_profile(self, user_id):
         """
         Returns the UserProfile information.
         """

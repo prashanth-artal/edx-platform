@@ -3,6 +3,7 @@ Defines abstract class for the Enrollment Reports.
 """
 from instructor.enrollment_report_provider import EnrollmentReportProvider
 from django.contrib.auth.models import User
+import collections
 
 
 class BaseEnrollmentReportProvider(EnrollmentReportProvider):
@@ -12,14 +13,26 @@ class BaseEnrollmentReportProvider(EnrollmentReportProvider):
 
     # don't allow instantiation of this class, it must be subclassed
     """
-    def get_user_profile(self, user_id, user_info_attributes, user_profile_attributes):
+    def get_user_profile(self, user_id):
         """
         Returns the UserProfile information.
         """
         user_info = User.objects.select_related('profile').get(id=user_id)
-        user_info_data = [getattr(user_info, x[0]) for x in user_info_attributes]
-        user_profile_data = [getattr(user_info.profile, x[0]) for x in user_profile_attributes]
-        return user_info_data + user_profile_data
+        user_data = collections.OrderedDict()
+        user_data['User ID'] = user_info.id
+        user_data['Username'] = user_info.username
+        user_data['First Name'] = user_info.first_name
+        user_data['Last Name'] = user_info.last_name
+        user_data['Language'] = user_info.profile.language
+        user_data['Location'] = user_info.profile.location
+        user_data['Year of Birth'] = user_info.profile.year_of_birth
+        user_data['Gender'] = user_info.profile.gender
+        user_data['Level of Education'] = user_info.profile.level_of_education
+        user_data['Mailing Address'] = user_info.profile.mailing_address
+        user_data['Goals'] = user_info.profile.goals
+        user_data['City'] = user_info.profile.city
+        user_data['Country'] = user_info.profile.country
+        return user_data
 
     def get_enrollment_info(self, user, course_id):
         """

@@ -15,7 +15,8 @@ from capa.tests.response_xml_factory import MultipleChoiceResponseXMLFactory
 from certificates.tests.factories import GeneratedCertificateFactory, CertificateWhitelistFactory
 from course_modes.models import CourseMode
 from instructor_task.models import ReportStore
-from instructor_task.tasks_helper import cohort_students_and_upload, upload_grades_csv, upload_students_csv
+from instructor_task.tasks_helper import cohort_students_and_upload, upload_grades_csv, upload_students_csv, \
+    upload_enrollment_report
 from instructor_task.tests.test_base import InstructorTaskCourseTestCase, TestReportMixin, InstructorTaskModuleTestCase
 from openedx.core.djangoapps.course_groups.models import CourseUserGroupPartitionGroup
 from openedx.core.djangoapps.course_groups.tests.helpers import CohortFactory
@@ -258,6 +259,27 @@ class TestInstructorGradeReport(TestReportMixin, InstructorTaskCourseTestCase):
             )
         ]
         result = upload_grades_csv(None, None, self.course.id, None, 'graded')
+        self.assertDictContainsSubset({'attempted': 1, 'succeeded': 1, 'failed': 0}, result)
+
+
+@ddt.ddt
+class TestInstructorDetailedEnrollmentReport(TestReportMixin, InstructorTaskCourseTestCase):
+    """
+    Tests that CSV detailed enrollment generation works.
+    """
+    def setUp(self):
+        super(TestInstructorDetailedEnrollmentReport, self).setUp()
+        self.course = CourseFactory.create()
+
+    def test_success(self):
+        self.create_student('student', 'student@example.com')
+        task_input = {'features': []}
+        with patch('instructor_task.tasks_helper._get_current_task'):
+            result = upload_enrollment_report(None, None, self.course.id, task_input, 'generating_enrollment_report')
+        report_store = ReportStore.from_config()
+        links = report_store.links_for(self.course.id)
+
+        self.assertEquals(len(links), 1)
         self.assertDictContainsSubset({'attempted': 1, 'succeeded': 1, 'failed': 0}, result)
 
 

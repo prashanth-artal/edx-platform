@@ -13,12 +13,11 @@ class BadImplementationEnrollmentReportProvider(EnrollmentReportProvider):
     raises the correct methods
     """
 
-    def get_user_profile(self, user_id, user_info_attributes, user_profile_attributes):
+    def get_user_profile(self, user_id):
         """
         Fake implementation of method which calls base class, which should throw NotImplementedError
         """
-        super(BadImplementationEnrollmentReportProvider, self).get_user_profile(user_id, user_info_attributes,
-                                                                                user_profile_attributes)
+        super(BadImplementationEnrollmentReportProvider, self).get_user_profile(user_id)
 
     def get_enrollment_info(self, user, course_id):
         """
@@ -73,4 +72,4 @@ class TestBaseNotificationDataProvider(TestCase):
             bad_provider.get_payment_info(None, None)
 
         with self.assertRaises(NotImplementedError):
-            bad_provider.get_user_profile(None, None, None)
+            bad_provider.get_user_profile(None)

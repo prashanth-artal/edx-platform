@@ -38,13 +38,13 @@ from django_comment_common.utils import seed_permissions_roles
 from microsite_configuration import microsite
 from shoppingcart.models import (
     RegistrationCodeRedemption, Order, CouponRedemption,
-    PaidCourseRegistration, Coupon, Invoice, CourseRegistrationCode, CourseRegistrationCodeInvoiceItem
-)
+    PaidCourseRegistration, Coupon, Invoice, CourseRegistrationCode, CourseRegistrationCodeInvoiceItem,
+    InvoiceTransaction)
 from shoppingcart.pdf import PDFInvoice
 from student.models import (
     CourseEnrollment, CourseEnrollmentAllowed, NonExistentCourseError
 )
-from student.tests.factories import UserFactory, CourseModeFactory
+from student.tests.factories import UserFactory, CourseModeFactory, AdminFactory
 from student.roles import CourseBetaTesterRole, CourseSalesAdminRole, CourseFinanceAdminRole, CourseInstructorRole
 from xmodule.modulestore import ModuleStoreEnum
 from xmodule.modulestore.django import modulestore
@@ -2023,23 +2023,178 @@ class TestInstructorAPILevelsDataDump(ModuleStoreTestCase, LoginEnrollmentTestCa
 
     def test_enrollment_report_features_csv(self):
         """
-        Test that some minimum of information is formatted
-        correctly in the response to get_students_features.
+        test to generate enrollment report.
+        enroll users, admin staff using registration codes.
         """
-        for i in range(2):
-            course_registration_code = CourseRegistrationCode(
-                code='sale_invoice{}'.format(i),
-                course_id=self.course.id.to_deprecated_string(),
-                created_by=self.instructor,
-                invoice=self.sale_invoice_1,
-                invoice_item=self.invoice_item,
-                mode_slug='honor'
-            )
-            course_registration_code.save()
+        invoice_transaction = InvoiceTransaction(
+            invoice=self.sale_invoice_1,
+            amount=self.sale_invoice_1.total_amount,
+            status='completed',
+            created_by=self.instructor,
+            last_modified_by=self.instructor
+        )
+        invoice_transaction.save()
+        course_registration_code = CourseRegistrationCode(
+            code='abcde',
+            course_id=self.course.id.to_deprecated_string(),
+            created_by=self.instructor,
+            invoice=self.sale_invoice_1,
+            invoice_item=self.invoice_item,
+            mode_slug='honor'
+        )
+        course_registration_code.save()
+
+        admin_user = AdminFactory()
+        admin_cart = Order.get_cart_for_user(admin_user)
+        PaidCourseRegistration.add_to_order(admin_cart, self.course.id)
+        admin_cart.purchase()
+
+        test_user = UserFactory()
+        redeem_url = reverse('register_code_redemption', args=[course_registration_code.code])
+        self.client.login(username=test_user.username, password='test')
+        response = self.client.get(redeem_url)
+        self.assertEquals(response.status_code, 200)
+        # check button text
+        self.assertTrue('Activate Course Enrollment' in response.content)
+
+        response = self.client.post(redeem_url)
+        self.assertEquals(response.status_code, 200)
+
+        self.client.login(username=self.instructor.username, password='test')
         url = reverse('get_enrollment_report', kwargs={'course_id': self.course.id.to_deprecated_string()})
         response = self.client.get(url, {})
         self.assertIn('Your detailed enrollment report is being generated!', response.content)
-        res_json = json.loads(response.content)
+
+    def test_bulk_purchase_detailed_report(self):
+        """
+        test to generate detailed enrollment report.
+        purchase registration codes and activate course
+        enrollment using purchased registration code and
+        then generate the enrollment report from the
+        instructor dashboard to check if the report is generated
+        successfully.
+        """
+        paid_course_reg_item = PaidCourseRegistration.add_to_order(self.cart, self.course.id)
+        # update the quantity of the cart item paid_course_reg_item
+        resp = self.client.post(reverse('shoppingcart.views.update_user_cart'),
+                                {'ItemId': paid_course_reg_item.id, 'qty': '4'})
+        self.assertEqual(resp.status_code, 200)
+        # apply the coupon code to the item in the cart
+        resp = self.client.post(reverse('shoppingcart.views.use_code'), {'code': self.coupon_code})
+        self.assertEqual(resp.status_code, 200)
+        self.cart.purchase()
+
+        course_reg_codes = CourseRegistrationCode.objects.filter(order=self.cart)
+        redeem_url = reverse('register_code_redemption', args=[course_reg_codes[0].code])
+        response = self.client.get(redeem_url)
+        self.assertEquals(response.status_code, 200)
+        # check button text
+        self.assertTrue('Activate Course Enrollment' in response.content)
+
+        response = self.client.post(redeem_url)
+        self.assertEquals(response.status_code, 200)
+
+        test_user = UserFactory()
+        test_user_cart = Order.get_cart_for_user(test_user)
+        PaidCourseRegistration.add_to_order(test_user_cart, self.course.id)
+        test_user_cart.purchase()
+        invoice_transaction = InvoiceTransaction(
+            invoice=self.sale_invoice_1,
+            amount=-self.sale_invoice_1.total_amount,
+            status='refunded',
+            created_by=self.instructor,
+            last_modified_by=self.instructor
+        )
+        invoice_transaction.save()
+        course_registration_code = CourseRegistrationCode(
+            code='abcde',
+            course_id=self.course.id.to_deprecated_string(),
+            created_by=self.instructor,
+            invoice=self.sale_invoice_1,
+            invoice_item=self.invoice_item,
+            mode_slug='honor'
+        )
+        course_registration_code.save()
+
+        test_user1 = UserFactory()
+        redeem_url = reverse('register_code_redemption', args=[course_registration_code.code])
+        self.client.login(username=test_user1.username, password='test')
+        response = self.client.get(redeem_url)
+        self.assertEquals(response.status_code, 200)
+        # check button text
+        self.assertTrue('Activate Course Enrollment' in response.content)
+
+        response = self.client.post(redeem_url)
+        self.assertEquals(response.status_code, 200)
+
+        self.client.login(username=self.instructor.username, password='test')
+
+        url = reverse('get_enrollment_report', kwargs={'course_id': self.course.id.to_deprecated_string()})
+        response = self.client.get(url, {})
+        self.assertIn('Your detailed enrollment report is being generated!', response.content)
+
+    def test_create_registration_code_without_invoice_and_order(self):
+        """
+        test generate detailed enrollment report,
+        used a registration codes which has been created via invoice or bulk
+        purchase scenario.
+        """
+        course_registration_code = CourseRegistrationCode(
+            code='abcde',
+            course_id=self.course.id.to_deprecated_string(),
+            created_by=self.instructor,
+            mode_slug='honor'
+        )
+        course_registration_code.save()
+        test_user1 = UserFactory()
+        redeem_url = reverse('register_code_redemption', args=[course_registration_code.code])
+        self.client.login(username=test_user1.username, password='test')
+        response = self.client.get(redeem_url)
+        self.assertEquals(response.status_code, 200)
+        # check button text
+        self.assertTrue('Activate Course Enrollment' in response.content)
+
+        response = self.client.post(redeem_url)
+        self.assertEquals(response.status_code, 200)
+
+        self.client.login(username=self.instructor.username, password='test')
+
+        url = reverse('get_enrollment_report', kwargs={'course_id': self.course.id.to_deprecated_string()})
+        response = self.client.get(url, {})
+        self.assertIn('Your detailed enrollment report is being generated!', response.content)
+
+    def test_invoice_payment_is_still_pending_for_registration_codes(self):
+        """
+        test generate enrollment report
+        enroll a user in a course using registration code
+        whose invoice has not been paid yet
+        """
+        course_registration_code = CourseRegistrationCode(
+            code='abcde',
+            course_id=self.course.id.to_deprecated_string(),
+            created_by=self.instructor,
+            invoice=self.sale_invoice_1,
+            invoice_item=self.invoice_item,
+            mode_slug='honor'
+        )
+        course_registration_code.save()
+
+        test_user1 = UserFactory()
+        redeem_url = reverse('register_code_redemption', args=[course_registration_code.code])
+        self.client.login(username=test_user1.username, password='test')
+        response = self.client.get(redeem_url)
+        self.assertEquals(response.status_code, 200)
+        # check button text
+        self.assertTrue('Activate Course Enrollment' in response.content)
+
+        response = self.client.post(redeem_url)
+        self.assertEquals(response.status_code, 200)
+
+        self.client.login(username=self.instructor.username, password='test')
+
+        url = reverse('get_enrollment_report', kwargs={'course_id': self.course.id.to_deprecated_string()})
+        response = self.client.get(url, {})
+        self.assertIn('Your detailed enrollment report is being generated!', response.content)
 
     @patch.object(instructor.views.api, 'anonymous_id_for_user', Mock(return_value='42'))
     @patch.object(instructor.views.api, 'unique_id_for_user', Mock(return_value='41'))
