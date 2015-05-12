@@ -821,9 +821,10 @@ def upload_problem_grade_report(_xmodule_instance_args, _entry_id, course_id, _t
         if task_progress.attempted % status_interval == 0:
             task_progress.update_task_state(extra_meta=current_step)
 
-    # Perform the upload
-    upload_csv_to_report_store(rows, 'problem_grade_report', course_id, start_date)
-    # If there are any error rows (don't count the header), write them out as well
+    # Perform the upload if any students have been successfully graded
+    if len(rows) > 1:
+        upload_csv_to_report_store(rows, 'problem_grade_report', course_id, start_date)
+    # If there are any error rows, write them out as well
     if len(error_rows) > 1:
         upload_csv_to_report_store(error_rows, 'problem_grade_report_err', course_id, start_date)
 

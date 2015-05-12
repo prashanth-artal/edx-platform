@@ -333,6 +333,28 @@ class TestProblemGradeReport(TestReportMixin, InstructorTaskModuleTestCase):
             ))
         ])
 
+    @patch('instructor_task.tasks_helper._get_current_task')
+    @patch('instructor_task.tasks_helper.iterate_grades_for')
+    def test_grading_failure(self, mock_iterate_grades_for, _mock_current_task):
+        """
+        Test that any grading errors are properly reported in the progress
+        dict and uploaded to the report store.
+        """
+        # mock an error response from `iterate_grades_for`
+        student = self.create_student(u'username', u'student@example.com')
+        error_message = u'Cannot grade student'
+        mock_iterate_grades_for.return_value = [
+            (student, {}, error_message)
+        ]
+        result = upload_problem_grade_report(None, None, self.course.id, None, 'graded')
+        self.assertDictContainsSubset({'attempted': 1, 'succeeded': 0, 'failed': 1}, result)
+
+        report_store = ReportStore.from_config()
+        self.assertTrue(any('grade_report_err' in item[0] for item in report_store.links_for(self.course.id)))
+        self.verify_rows_in_csv([
+            {u'Student ID': unicode(student.id), u'Email': student.email, u'Username': student.username, u'error_msg': error_message}
+        ])
+
 
 class TestProblemReportSplitTestContent(TestGradeReportConditionalContent):
     """
@@ -393,28 +415,6 @@ class TestProblemReportSplitTestContent(TestGradeReportConditionalContent):
                     self.student_b.username, u'0.5', u'N/A', u'N/A', u'1.0', u'2.0'
                 ]
             ))
-        ])
-
-    @patch('instructor_task.tasks_helper._get_current_task')
-    @patch('instructor_task.tasks_helper.iterate_grades_for')
-    def test_grading_failure(self, mock_iterate_grades_for, _mock_current_task):
-        """
-        Test that any grading errors are properly reported in the progress
-        dict and uploaded to the report store.
-        """
-        # mock an error response from `iterate_grades_for`
-        student = self.create_student(u'username', u'student@example.com')
-        error_message = u'Cannot grade student'
-        mock_iterate_grades_for.return_value = [
-            (student, {}, error_message)
-        ]
-        result = upload_problem_grade_report(None, None, self.course.id, None, 'graded')
-        self.assertDictContainsSubset({'attempted': 1, 'succeeded': 0, 'failed': 1}, result)
-
-        report_store = ReportStore.from_config()
-        self.assertTrue(any('grade_report_err' in item[0] for item in report_store.links_for(self.course.id)))
-        self.verify_rows_in_csv([
-            {u'Student ID': unicode(student.id), u'Email': student.email, u'Username': student.username, u'error_msg': error_message}
         ])
 
 

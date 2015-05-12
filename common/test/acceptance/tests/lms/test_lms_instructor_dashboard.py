@@ -320,24 +320,16 @@ class DataDownloadsTest(BaseInstructorDashboardTest):
         """
         Verifies that the correct event is emitted when a report is requested.
         """
-        self.verify_events_of_type(
-            self.instructor_username,
-            u"edx.instructor.report.requested",
-            [{
-                u"report_type": report_type
-            }]
+        self.assert_matching_events_were_emitted(
+            event_filter={'name': u'edx.instructor.report.requested', 'report_type': report_type}
         )
 
     def verify_report_downloaded_event(self, report_url):
         """
         Verifies that the correct event is emitted when a report is downloaded.
         """
-        self.verify_events_of_type(
-            self.instructor_username,
-            u"edx.instructor.report.downloaded",
-            [{
-                u"report_url": report_url
-            }]
+        self.assert_matching_events_were_emitted(
+            event_filter={'name': u'edx.instructor.report.downloaded', 'report_url': report_url}
         )
 
     def verify_report_download(self, report_name):
