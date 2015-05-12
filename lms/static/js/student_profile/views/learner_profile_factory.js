@@ -17,7 +17,11 @@
             var learnerProfileElement = $('.wrapper-profile');
             var accountPreferencesModel, accountSettingsModel;
 
-            accountSettingsModel = new AccountSettingsModel(options.account_settings, {parse: true});
+            accountSettingsModel = new AccountSettingsModel(
+                _.extend(
+                    options.account_settings, {'default_public_account_fields': options.default_public_account_fields}),
+                {parse: true}
+            );
             accountPreferencesModel = new AccountPreferencesModel(options.preferences_data);
 
             accountSettingsModel.url = options.accounts_api_url;
