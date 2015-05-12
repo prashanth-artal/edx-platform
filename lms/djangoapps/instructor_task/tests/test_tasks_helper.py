@@ -289,12 +289,12 @@ class TestProblemGradeReport(TestReportMixin, InstructorTaskModuleTestCase):
         self.verify_rows_in_csv([
             dict(zip(
                 self.csv_header_row,
-                [unicode(self.student_1.id), self.student_1.email, self.student_1.username, '0.0'])
-            ),
+                [unicode(self.student_1.id), self.student_1.email, self.student_1.username, '0.0']
+            )),
             dict(zip(
                 self.csv_header_row,
-                [unicode(self.student_2.id), self.student_2.email, self.student_2.username, '0.0'])
-            )
+                [unicode(self.student_2.id), self.student_2.email, self.student_2.username, '0.0']
+            ))
         ])
 
     @patch('instructor_task.tasks_helper._get_current_task')
@@ -352,7 +352,12 @@ class TestProblemGradeReport(TestReportMixin, InstructorTaskModuleTestCase):
         report_store = ReportStore.from_config()
         self.assertTrue(any('grade_report_err' in item[0] for item in report_store.links_for(self.course.id)))
         self.verify_rows_in_csv([
-            {u'Student ID': unicode(student.id), u'Email': student.email, u'Username': student.username, u'error_msg': error_message}
+            {
+                u'Student ID': unicode(student.id),
+                u'Email': student.email,
+                u'Username': student.username,
+                u'error_msg': error_message
+            }
         ])
 
 
@@ -543,7 +548,7 @@ class TestStudentReport(TestReportMixin, InstructorTaskCourseTestCase):
         with patch('instructor_task.tasks_helper._get_current_task') as mock_current_task:
             mock_current_task.return_value = self.current_task
             result = upload_students_csv(None, None, self.course.id, task_input, 'calculated')
-        #This assertion simply confirms that the generation completed with no errors
+        # This assertion simply confirms that the generation completed with no errors
         num_students = len(students)
         self.assertDictContainsSubset({'attempted': num_students, 'succeeded': num_students, 'failed': 0}, result)
 
