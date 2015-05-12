@@ -206,14 +206,12 @@
             },
 
             startEditing: function (event) {
-                event.preventDefault();
                 if (this.editable === 'toggle' && this.mode !== 'edit') {
                     this.showEditMode(true);
                 }
             },
 
             finishEditing: function(event) {
-                event.preventDefault();
                 if (this.fieldValue() !== this.modelValue()) {
                     this.saveValue();
                 } else {
