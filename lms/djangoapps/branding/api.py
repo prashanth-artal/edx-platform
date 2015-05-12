@@ -10,7 +10,11 @@ log = logging.getLogger("edx.footer")
 
 
 def get_footer():
+    """ Get the footer links json
 
+    Returns:
+        Dict of footer links
+    """
     site_name = microsite.get_value('SITE_NAME', settings.SITE_NAME)
     context = dict()
     context["copy_right"] = copy_right()
@@ -23,7 +27,8 @@ def get_footer():
 
 
 def copy_right():
-
+    """ Returns the copy rights text
+    """
     data = _("(c) 2015 edX Inc. EdX, Open edX, and the edX and Open edX logos "
              "are registered trademarks or trademarks of edX Inc.")
 
@@ -31,6 +36,8 @@ def copy_right():
 
 
 def heading():
+    """ Returns the heading text
+    """
 
     data = ("EdX offers interactive online classes and MOOCs from the world's best universities," +
             " colleges and organizations. Online courses from MITx, HarvardX, BerkeleyX, UTx and" +
@@ -43,7 +50,8 @@ def heading():
 
 
 def social_links():
-
+    """ Returns the list of social link of footer
+    """
     return [
         {
             "provider": "facebook",
@@ -89,7 +97,8 @@ def social_links():
 
 
 def about_edx_link(site_name):
-
+    """ Returns the list of about link of footer
+    """
     return [
         {
             "title": _("About"),
@@ -124,7 +133,3 @@ def about_edx_link(site_name):
             "url": "{}/sitemap".format(site_name)
         },
     ]
-
-
-def footer_heading():
-    return ""
