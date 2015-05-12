@@ -220,7 +220,7 @@ class InstructorTaskModuleTestCase(InstructorTaskCourseTestCase):
         ItemFactory.create(parent_location=parent.location,
                            parent=parent,
                            category="problem",
-                           display_name=str(problem_url_name),
+                           display_name=problem_url_name,
                            data=problem_xml,
                            **kwargs)
 
@@ -259,8 +259,8 @@ class InstructorTaskModuleTestCase(InstructorTaskCourseTestCase):
             # URL, modified so that it can be easily stored in html, prepended with "input-" and
             # appended with a sequence identifier for the particular response the input goes to.
             course_key = self.course.id
-            return 'input_i4x-{0}-{1}-problem-{2}_{3}'.format(course_key.org,
-                                                              course_key.course.replace('.', '_'),
+            return u'input_i4x-{0}-{1}-problem-{2}_{3}'.format(course_key.org,
+                                                              course_key.course.replace(u'.', u'_'),
                                                               problem_url_name, response_id)
 
         # make sure that the requested user is logged in, so that the ajax call works
@@ -278,7 +278,7 @@ class InstructorTaskModuleTestCase(InstructorTaskCourseTestCase):
 
         # assign correct identifier to each response.
         resp = self.client.post(modx_url, {
-            get_input_id('{}_1').format(index): response for index, response in enumerate(responses, 2)
+            get_input_id(u'{}_1').format(index): response for index, response in enumerate(responses, 2)
         })
         return resp
 

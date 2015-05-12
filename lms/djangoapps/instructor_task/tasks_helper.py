@@ -749,7 +749,7 @@ def _order_problems(blocks):
     for assignment_type in assignments:
         for assignment_index, assignment in enumerate(assignments[assignment_type].keys(), start=1):
             for problem in assignments[assignment_type][assignment]:
-                header_name = "{assignment_type} {assignment_index}: {assignment_name} - {block}".format(
+                header_name = u"{assignment_type} {assignment_index}: {assignment_name} - {block}".format(
                     block=blocks[problem]['display_name'],
                     assignment_type=assignment_type,
                     assignment_index=assignment_index,

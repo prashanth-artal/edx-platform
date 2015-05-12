@@ -465,7 +465,7 @@ class TestDeleteProblemTask(TestIntegrationTask):
         self.assertEqual(instructor_task.task_state, SUCCESS)
 
 
-class TestGradeReportConditionalContent(TestReportMixin, TestIntegrationTask):
+class TestConditionalContent(TestReportMixin, TestIntegrationTask):
     """
     Check that grade export works when graded content exists within
     split modules.
@@ -486,7 +486,7 @@ class TestGradeReportConditionalContent(TestReportMixin, TestIntegrationTask):
                             -> vertical (Group B)
                                 -> problem
         """
-        super(TestGradeReportConditionalContent, self).setUp()
+        super(TestConditionalContent, self).setUp()
 
         # Create user partitions
         self.user_partition_group_a = 0
@@ -562,6 +562,9 @@ class TestGradeReportConditionalContent(TestReportMixin, TestIntegrationTask):
             display_name='Group B problem container',
             location=vertical_b_url
         )
+
+
+class TestGradeReportConditionalContent(TestConditionalContent):
 
     def verify_csv_task_success(self, task_result):
         """

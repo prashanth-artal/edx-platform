@@ -28,7 +28,7 @@ from instructor_task.models import ReportStore
 from instructor_task.tasks_helper import (
     cohort_students_and_upload, upload_grades_csv, upload_problem_grade_report, upload_students_csv
 )
-from instructor_task.tests.test_integration import TestGradeReportConditionalContent
+from instructor_task.tests.test_integration import TestConditionalContent
 from util.testing import ContentGroupTestCase
 
 
@@ -342,7 +342,7 @@ class TestProblemGradeReport(TestReportMixin, InstructorTaskModuleTestCase):
         """
         # mock an error response from `iterate_grades_for`
         student = self.create_student(u'username', u'student@example.com')
-        error_message = u'Cannot grade student'
+        error_message = u'Cannöt grade student'
         mock_iterate_grades_for.return_value = [
             (student, {}, error_message)
         ]
@@ -361,7 +361,7 @@ class TestProblemGradeReport(TestReportMixin, InstructorTaskModuleTestCase):
         ])
 
 
-class TestProblemReportSplitTestContent(TestGradeReportConditionalContent):
+class TestProblemReportSplitTestContent(TestConditionalContent):
     """
     Test the problem report on a course that has split tests.
     """
@@ -371,8 +371,8 @@ class TestProblemReportSplitTestContent(TestGradeReportConditionalContent):
 
     def setUp(self):
         super(TestProblemReportSplitTestContent, self).setUp()
-        self.problem_a_url = 'problem_a_url'
-        self.problem_b_url = 'problem_b_url'
+        self.problem_a_url = u'pröblem_a_url'
+        self.problem_b_url = u'pröblem_b_url'
         self.define_option_problem(self.problem_a_url, parent=self.vertical_a)
         self.define_option_problem(self.problem_b_url, parent=self.vertical_b)
 
@@ -395,9 +395,11 @@ class TestProblemReportSplitTestContent(TestGradeReportConditionalContent):
 
         with patch('instructor_task.tasks_helper._get_current_task'):
             result = upload_problem_grade_report(None, None, self.course.id, None, 'graded')
-            self.verify_csv_task_success(result)
+            self.assertDictContainsSubset(
+                {'action_name': 'graded', 'attempted': 2, 'succeeded': 2, 'failed': 0}, result
+            )
 
-        problem_names = ['Homework 1: Problem - problem_a_url', 'Homework 1: Problem - problem_b_url']
+        problem_names = [u'Homework 1: Problem - pröblem_a_url', u'Homework 1: Problem - pröblem_b_url']
         header_row = [u'Student ID', u'Email', u'Username', u'Final Grade']
         for problem in problem_names:
             header_row += [problem + ' (Earned)', problem + ' (Possible)']
