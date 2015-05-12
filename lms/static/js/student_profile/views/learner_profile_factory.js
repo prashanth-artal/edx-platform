@@ -15,6 +15,12 @@
         return function (options) {
 
             var learnerProfileElement = $('.wrapper-profile');
+
+            var AccountPreferencesModelWithDefaults = AccountPreferencesModel.extend({
+                defaults: {
+                    account_privacy: options.default_visibility
+                }
+            });
             var accountPreferencesModel, accountSettingsModel;
 
             accountSettingsModel = new AccountSettingsModel(
@@ -22,7 +28,8 @@
                     options.account_settings, {'default_public_account_fields': options.default_public_account_fields}),
                 {parse: true}
             );
-            accountPreferencesModel = new AccountPreferencesModel(options.preferences_data);
+
+            accountPreferencesModel = new AccountPreferencesModelWithDefaults(options.preferences_data);
 
             accountSettingsModel.url = options.accounts_api_url;
             accountPreferencesModel.url = options.preferences_api_url;
