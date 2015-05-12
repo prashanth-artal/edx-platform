@@ -68,7 +68,7 @@ function () {
             menuItemsLinks = menuItems.children('.action'),
             value = (function (val, activeElement) {
                 return val || activeElement.find('a').data('value') || 'srt';
-            }(state.videoAccessibleMenu.value, menuItems.filter('.active'))),
+            }(state.videoAccessibleMenu.value, menuItems.filter('.is-active'))),
             msg = '.' + value;
 
         $.extend(state.videoAccessibleMenu, {
@@ -297,10 +297,10 @@ function () {
 
         menu.value = value;
         menu.menuItems
-            .removeClass('active')
+            .removeClass('is-active')
             .find("a[data-value='" + value + "']")
             .parent()
-            .addClass('active');
+            .addClass('is-active');
     }
 
     // ***************************************************************

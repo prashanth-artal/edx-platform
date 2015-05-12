@@ -36,7 +36,7 @@
                     expect(menuItemsLinks.length).toBeGreaterThan(0);
                     expect(menuItems.length).toBe(menuItemsLinks.length);
                     // And one menu item is active
-                    activeMenuItem = menuItems.filter('.active');
+                    activeMenuItem = menuItems.filter('.is-active');
                     expect(activeMenuItem.length).toBe(1);
 
                     expect(activeMenuItem.children('.action'))

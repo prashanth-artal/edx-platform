@@ -59,7 +59,7 @@
             text-indent: 0;
 
             &.is-hidden {
-                @extend %block-sr;
+                @extend %text-sr;
             }
 
             &.align-left {

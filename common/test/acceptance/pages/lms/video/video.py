@@ -589,7 +589,7 @@ class VideoPage(PageObject):
 
         self.browser.execute_script("window.scrollTo(0, 0);")
 
-        if self.q(css=menu_selector + ' .active a').attrs('data-value')[0] != transcript_format:
+        if self.q(css=menu_selector + ' .is-active a').attrs('data-value')[0] != transcript_format:
             return False
 
         if '.' + transcript_format not in self.q(css=button_selector).text[0]:
