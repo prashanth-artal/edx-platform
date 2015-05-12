@@ -173,16 +173,16 @@ class DashboardPage(PageObject):
         """
         Return list username dropdown links.
         """
-        return self.q(css='.dropdown li a').text
+        return self.q(css='.dropdown-menu li a').text
 
     def click_account_settings_link(self):
         """
         Click on `Account Settings` link.
         """
-        self.q(css='.dropdown li a').first.click()
+        self.q(css='.dropdown-menu li a').first.click()
 
     def click_my_profile_link(self):
         """
         Click on `My Profile` link.
         """
-        self.q(css='.dropdown li a').nth(1).click()
+        self.q(css='.dropdown-menu li a').nth(1).click()

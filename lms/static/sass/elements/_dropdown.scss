@@ -43,7 +43,7 @@
             }
         }
 
-        & + .dropdown {
+        & + .dropdown-menu {
             @extend %ui-no-list;
             @extend %ui-depth1;
             position: absolute;

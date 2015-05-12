@@ -17,7 +17,7 @@
                     videoTracks = $('.video-tracks');
                     container = videoTracks.children('.wrapper-more-actions');
                     button = container.children('.has-dropdown');
-                    menuList = container.children('.dropdown');
+                    menuList = container.children('.dropdown-menu');
                     menuItems = menuList.children('.dropdown-item');
                     menuItemsLinks = menuItems.children('.action');
                 });
@@ -112,7 +112,7 @@
                     videoTracks = $('.video-tracks');
                     container = videoTracks.children('.wrapper-more-actions');
                     button = container.children('.button-more.has-dropdown');
-                    menuList = container.children('.dropdown');
+                    menuList = container.children('.dropdown-menu');
                     menuItems = menuList.children('.dropdown-item');
                     menuItemsLinks = menuItems.children('.action');
                     spyOn($.fn, 'focus').andCallThrough();

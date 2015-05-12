@@ -121,7 +121,7 @@
                 <span class="icon fa fa-sort-desc" aria-hidden="true"></span>
                 <span class="sr">${_('Transcript download format')}</span>
             </button>
-            <ul class="dropdown is-hidden" id="dropdown-transcript-format" tabindex="-1">
+            <ul class="dropdown-menu is-hidden" id="dropdown-transcript-format" tabindex="-1">
               % for item in transcript_download_formats_list:
                 % if item['value'] == transcript_download_format:
                 <li class="dropdown-item active">

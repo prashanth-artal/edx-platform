@@ -465,7 +465,7 @@ class VideoPage(PageObject):
             bool: Transcript download result.
 
         """
-        transcript_selector = self.get_element_selector(VIDEO_MENUS['transcript-format'])
+        transcript_selector = self.get_element_selector(VIDEO_MENUS['dropdown-transcript-format'])
 
         # check if we have a transcript with correct format
         if '.' + transcript_format not in self.q(css=transcript_selector).text[0]:
