@@ -29,7 +29,7 @@ from instructor_task.tasks_helper import (
     cohort_students_and_upload, upload_grades_csv, upload_problem_grade_report, upload_students_csv
 )
 from instructor_task.tests.test_integration import TestGradeReportConditionalContent
-from django_comment_client.tests.utils import ContentGroupTestCase
+from util.testing import ContentGroupTestCase
 
 
 @ddt.ddt
